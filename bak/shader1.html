@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - shader [Monjori]</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+	</head>
+	<body>
+
+		<div id="container"></div>
+		
+		<script id="vertexShader" type="x-shader/x-vertex">
+
+			varying vec2 vUv;
+
+			void main()	{
+				vUv = uv;
+				gl_Position = vec4( position, 1.0 );
+			}
+
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			varying vec2 vUv;
+			uniform float time;
+			void main()	{
+				vec2 p = - 1.0 + 2.0 * vUv;
+				p=p*2.0;
+				float zoo = .62+.38*sin(.1*time);
+				float coa = cos( 0.1*(1.0-zoo)*time );
+				float sia = sin( 0.1*(1.0-zoo)*time );
+				zoo = pow( zoo,8.0);
+				vec2 xy = vec2( p.x*coa-p.y*sia, p.x*sia+p.y*coa);
+				vec2 cc = vec2(-.745,.186) + xy*zoo;
+				vec2 z  = vec2(0.0);
+				vec2 z2 = z*z;
+				float m2;
+				float co = 0.0;
+				for( int i=0; i<256; i++ ){
+					z = cc + vec2( z.x*z.x - z.y*z.y, 2.0*z.x*z.y );
+					m2 = dot(z,z);
+					if( m2>1024.0 ) break;
+					co += 1.0;
+				}
+				co = co + 1.0 - log2(.5*log2(m2));
+
+				co = sqrt(co/256.0);
+				gl_FragColor = vec4( .5+.5*cos(6.2831*co+0.0),
+									.5+.5*cos(6.2831*co+0.4),
+									.5+.5*cos(6.2831*co+0.7),
+									1.0 );
+				//gl_FragColor = vec4(p.x,0.0,0.0,1.0);
+
+			}
+
+		</script>
+
+		<script type="module">
+			import * as THREE from './lib/three.module.js';
+
+			var container;
+			var camera, scene, renderer;
+		    var uniforms;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				camera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+
+				scene = new THREE.Scene();
+
+				var geometry = new THREE.PlaneBufferGeometry( 2, 2 );
+
+				uniforms = {
+					"time": { value: 1.0 }
+				};
+
+				var material = new THREE.ShaderMaterial( {
+
+					uniforms: uniforms,
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+
+				} );
+
+				var mesh = new THREE.Mesh( geometry, material );
+				scene.add( mesh );
+
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				container.appendChild( renderer.domElement );
+
+				onWindowResize();
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+			}
+
+			function onWindowResize() {
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+	
+
+			function animate( timestamp ) {
+
+				requestAnimationFrame( animate );
+
+				uniforms[ "time" ].value = timestamp / 1000;
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>
