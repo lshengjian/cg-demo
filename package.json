@@ -9,7 +9,7 @@
     "serve": "^11.0.2"
   },
   "dependencies": {
-    "three": "^0.108.0"
+    "three": "^0.137.0"
   },
   "scripts": {
     "build": "rollup -c",
